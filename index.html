@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enneagram: Karakter ve Nevroz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* --- TASARIM AYARLARI --- */
+        :root {
+            --bg-color: #f4f7f6;
+            --primary-green: #558b2f; /* Doğal, olgun yeşil */
+            --light-green: #dcedc8;
+            --dark-text: #263238;
+            --accent-color: #8d6e63; 
+            --paper-white: #ffffff;
+        }
+
+        body {
+            font-family: 'Merriweather', serif;
+            background-color: var(--bg-color);
+            color: var(--dark-text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.9;
+            font-size: 17px;
+        }
+
+        /* Scrollbar özelleştirme */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-green); border-radius: 5px; }
+
+        /* NAVİGASYON (Sadeleştirildi) */
+        nav {
+            background-color: var(--primary-green);
+            padding: 20px 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-title {
+            color: white;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        /* GRID GÖRÜNÜMÜ */
+        .grid-header { text-align: center; margin-bottom: 60px; }
+        .grid-header h1 { font-family: 'Playfair Display'; font-size: 3.5em; color: var(--primary-green); margin-bottom: 10px; }
+        .grid-header p { color: #607d8b; font-style: italic; font-size: 1.2em; }
+
+        .grid-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .type-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(0,0,0,0.02);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .type-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 6px;
+            background: var(--primary-green);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+
+        .type-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(85, 139, 47, 0.2);
+        }
+        .type-card:hover::before { transform: scaleX(1); }
+
+        .type-card h2 { font-size: 3em; margin: 0; color: #eceff1; font-weight: 900; line-height: 1; transition: color 0.3s; }
+        .type-card:hover h2 { color: var(--light-green); }
+        .type-card h3 { font-family: 'Playfair Display'; font-size: 1.5em; margin: 10px 0 0; color: var(--dark-text); }
+        
+        .type-card.locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
+
+        /* DETAY GÖRÜNÜMÜ */
+        #detail-view { display: none; padding-bottom: 100px; }
+        
+        .detail-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #cfd8dc;
+        }
+        .detail-header h1 { font-size: 4em; color: var(--primary-green); margin: 0; font-family: 'Playfair Display'; }
+        .detail-header .meta { font-size: 1.3em; color: var(--accent-color); margin-top: 10px; font-style: italic; }
+
+        .article-section {
+            background: white;
+            padding: 60px;
+            margin-bottom: 40px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+            border-left: 5px solid var(--primary-green);
+        }
+
+        .article-section h3 {
+            font-family: 'Playfair Display';
+            font-size: 2em;
+            margin-top: 0;
+            color: var(--dark-text);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .subtype-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            background: #fafafa;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .subtype-head {
+            padding: 30px;
+            background: #f1f8e9;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            font-family: 'Playfair Display';
+            color: #33691e;
+        }
+        .subtype-head:hover { background: #dcedc8; }
+        .subtype-content {
+            display: none;
+            padding: 40px;
+            background: white;
+            color: #455a64;
+            border-top: 1px solid #eee;
+        }
+        
+        .trauma-box {
+            background-color: #fff8e1; /* Sarımtırak eski kağıt */
+            padding: 50px;
+            border-radius: 15px;
+            border: 2px dashed #ffecb3;
+            position: relative;
+            margin-top: 60px;
+        }
+        .trauma-box::after {
+            content: 'KÖKEN & YARA';
+            position: absolute;
+            top: -15px; left: 40px;
+            background: #ffca28;
+            color: #fff;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            border-radius: 4px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            padding: 10px 25px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 20px;
+            font-family: 'Merriweather', serif;
+        }
+        .back-btn:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-title" onclick="showHome()">Enneagram Ansiklopedisi</div>
+</nav>
+
+<div class="container">
+
+    <div id="home-view">
+        <div class="grid-header">
+            <h1>Karakterin Derinlikleri</h1>
+            <p>Claudio Naranjo Ekolü ile Kişiliğin ve Nörozun Analizi</p>
+        </div>
+        <div class="grid-wrapper" id="grid"></div>
+    </div>
+
+    <div id="detail-view">
+        <button class="back-btn" onclick="showHome()">← Kütüphaneye Dön</button>
+        
+        <div class="detail-header">
+            <h1 id="d-title">Tip Başlığı</h1>
+            <div class="meta" id="d-meta">Tutku & Fiksasyon</div>
+        </div>
+
+        <div class="article-section">
+            <h3>Karakter Analizi ve Psikodinamikler</h3>
+            <div id="d-content"></div>
+        </div>
+
+        <div class="article-section" style="border-left-color: #ffb74d;">
+            <h3>İçgüdüsel Alt Tipler (Naranjo Ekolü)</h3>
+            <p style="margin-bottom:30px; font-style:italic;">Detaylı analizi okumak için başlıklara tıklayınız.</p>
+            <div id="d-subtypes"></div>
+        </div>
+
+        <div class="trauma-box">
+            <h3 style="margin-top:0; color:#f57f17;">Çocukluk ve Psikogenetik Köken</h3>
+            <div id="d-trauma"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- VERİTABANI: DETAYLI İÇERİK ---
+    const db = {
+        1: {
+            title: "E1: Öfke ve Mükemmeliyet",
+            meta: "Tutku: Öfke (Anger) | Fiksasyon: Mükemmeliyetçilik | Savunma: Reaksiyon Formasyon",
+            content: `
+                <p><strong>Giriş:</strong> Tip 1, varoluşsal bir "kusurluluk" hissine karşı geliştirilmiş devasa bir reaksiyondur. Naranjo'ya göre Tip 1'in tutkusu "Öfke"dir, ancak bu öfke, Tip 8'deki gibi çiğ ve patlayıcı bir öfke değildir. Bu, "bastırılmış", "medenileştirilmiş" ve "erdemli" bir öfkedir. Tip 1, dünyayı olduğu gibi kabul edemez; çünkü dünya ona göre hatalı, eksik ve düzensizdir. Bu yüzden bilinçdışı bir dürtüyle her şeyi düzeltme, iyileştirme ve hizaya sokma misyonunu üstlenir.</p>
+                <p><strong>Reaksiyon Formasyon (Karşıt Tepki Kurma):</strong> Tip 1'in ana savunma mekanizmasıdır. İçeride yoğun bir öfke, arzu veya "uygunsuz" istekler hissederken, dışarıya bunun tam tersini; aşırı nezaket, aşırı kontrol ve aşırı ahlaklılık olarak yansıtır. Öfkesini "haklı kızgınlık" veya "eleştiri" maskesi altında yaşar. Kendi içindeki dürtülerden korktuğu için katı bir "Süperego" (İç Polis) geliştirmiştir.</p>
+                <p><strong>Yargılayan Zihin:</strong> Tip 1'in zihni sürekli bir kıyaslama halindedir: "Olan" ile "Olması Gereken". Bu fark, 1'de acı ve gerginlik yaratır. Sadece başkalarını değil, en çok da kendini yargılar. Rahatlamak, hata yapmaya kapı aralamak demektir ve hata yapmak "kötü" olmaktır.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 1 (SP): Kaygı ve Mükemmeliyet",
+                    desc: "Naranjo Tanımı: 'Endişe' (Worry/Anguish)",
+                    text: `
+                        <p>Bu alt tip, Tip 1'in öfkesini en çok içine atan ve kendine yönelten formudur. Dışarıdan bakıldığında en "düzgün", en nazik ve en mükemmeliyetçi 1'dir. Ancak iç dünyasında cehennemi yaşar.</p>
+                        <p><strong>Temel Dinamik:</strong> "Eğer her şeyi mükemmel yaparsam, başıma kötü bir şey gelmez." İnancı budur. Sürekli bir endişe halindedirler. Gelecekte olabilecek hataları öngörmeye çalışır ve bunları engellemek için şimdiden tedbir alırlar. Detaylara takıntılıdırlar. Kendilerine karşı acımasızdırlar; en ufak bir hatada kendilerini günlerce suçlayabilirler. Öfkeleri "sıcak" bir öfke değil, "soğuk" bir gerginliktir.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 1 (SO): Uyumsuzluk ve Aristokrasi",
+                    desc: "Naranjo Tanımı: 'Uyumsuzluk' (Non-Adaptability)",
+                    text: `
+                        <p>Bu alt tip, "Ben doğrusunu biliyorum ve siz de bana uymalısınız" diyen bir öğretmen/model tavrındadır. Öfke burada "entelektüel ve ahlaki üstünlük" olarak tezahür eder.</p>
+                        <p><strong>Temel Dinamik:</strong> Kendilerini grubun etik bekçisi veya aristokratı gibi görürler. Başkalarının hatalarını düzeltmek onların görevidir. "Uyumsuzluk" denmesinin sebebi, onların başkalarına veya durumlara uyum sağlamamasıdır; onlar dünyanın kendi doğrularına uyum sağlamasını beklerler. Hata yapanları içten içe aşağılarlar ve soğuk bir mesafe koyarlar.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 1 (SX): Kıskançlık ve Islah",
+                    desc: "Naranjo Tanımı: 'Gayret/Şevk' (Zeal)",
+                    text: `
+                        <p>Tip 1'in öfkesini en dışa vuran, en yoğun ve "hayvani" dürtülere en yakın (ama yine de bastıran) alt tipidir. Burada mükemmellik arayışı "ötekini" düzeltmeye odaklanır.</p>
+                        <p><strong>Temel Dinamik:</strong> Bir partneri veya bir davayı "ıslah etme" arzusu duyarlar. "Seni seviyorum, bu yüzden seni düzeltiyorum" tavrı hakimdir. Arzuladıkları şeye karşı büyük bir şevk duyarlar ve engellendiklerinde öfke patlamaları yaşayabilirler. Kıskançtırlar; çünkü başkalarının "kuralları çiğneyerek" mutlu olmasını, kendilerinin ise "doğruyu yaparak" acı çekmesini kaldıramazlar.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 1 çocukları, "Erken Büyümek Zorunda Kalan" çocuklardır. Aile ortamında genellikle ya çok katı/cezalandırıcı bir ebeveyn ya da çok kaotik/sorumsuz bir ebeveyn vardır. Çocuk şu mesajı almıştır: <strong>"Çocuk olmak, hata yapmak, gürültü yapmak, duygusal olmak tehlikelidir."</strong></p>
+                <p>Bunun sonucunda çocuk, kendi doğal dürtülerini (oyun, yaramazlık, öfke) "kötü" olarak etiketleyip zihinsel bir odaya kilitlemiştir. Sevilebilmek veya güvende kalabilmek için "küçük bir yetişkin" gibi davranmaya, sorumluluk almaya ve kusursuz olmaya karar vermiştir. Kendi içindeki spontane çocuğa düşman olmuştur.</p>
+            `
+        },
+        2: {
+            title: "E2: Gurur ve Yalancı Bolluk",
+            meta: "Tutku: Gurur (Pride) | Fiksasyon: Yaranma/İltifat | Savunma: Bastırma (Repression)",
+            content: `
+                <p><strong>Giriş:</strong> Tip 2'nin temelinde derin bir "sevgiye layık olmama" korkusu ve buna karşı geliştirilen "vazgeçilmez olma" stratejisi yatar. Naranjo'ya göre bu tipin tutkusu "Gurur"dur. Bu gurur, burnu büyüklük değil, "Benim kimseye ihtiyacım yok, ama herkesin bana ihtiyacı var" şeklindeki "yalancı bolluk" hissidir. Tip 2, kendi ihtiyaçlarını görmezden gelerek (bastırarak) tamamen ötekine odaklanır.</p>
+                <p><strong>Duygusal Manipülasyon:</strong> E2, sevgiyi doğrudan isteyemez (çünkü istemek, muhtaçlıktır ve muhtaçlık gururu zedeler). Bunun yerine, karşıdakini borçlu bırakarak sevgiyi "tahsil etmeye" çalışır. "Ben senin için saçımı süpürge ettim" cümlesi, 2'nin en büyük silahıdır. İnsanların hayatına girer, onlara yardım eder, onları kendine bağımlı kılar ve böylece kendi varlığını onaylatır.</p>
+                <p><strong>Hedonizm ve Özgürlük:</strong> Sanılanın aksine Tip 2 sadece "anne Teresa" değildir; aynı zamanda özgürlüğüne düşkün, keyif almayı seven ve kuralları esnetebilen bir yapıdır. Kendi duygusal dürtülerine kapılıp sürüklenebilir.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 2 (SP): Ayrıcalık ve 'Ben'",
+                    desc: "Naranjo Tanımı: 'Ayrıcalık' (Privilege)",
+                    text: `
+                        <p>Diğer 2'lerin aksine en çok "kendi"siyle ilgilenen, çocuksu cazibeyi kullanan tiptir. Naranjo onlara "Prens/Prenses" der.</p>
+                        <p><strong>Temel Dinamik:</strong> "Ben sevilmeliyim çünkü ben benim." Bu alt tip, sevgiyi hak etmek için çok çalışmak yerine, sevimliliğini ve kırılganlığını kullanır. Korunma ve bakım görme arzusu yoğundur. Bencilliği en açık olan 2'dir ama bunu o kadar masum bir kılıfla yapar ki insanlar ona kızamaz, aksine ona hizmet etmek isterler. Reddedilmekten ölesiye korkar.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 2 (SO): Hırs ve Güç",
+                    desc: "Naranjo Tanımı: 'Hırs' (Ambition)",
+                    text: `
+                        <p>Tip 2'nin en entelektüel, en soğuk ve en güç odaklı halidir. Burada gurur, "önemli biri olmak" arzusuna dönüşür.</p>
+                        <p><strong>Temel Dinamik:</strong> Sosyal 2, "Kralın yanındaki Vezir" veya "Liderin eşi" olmak ister. Güçlü insanları baştan çıkarır (zekasıyla veya sosyal becerisiyle) ve onların gücünü paylaşır. Grupları organize eder, herkesin ismini bilir, ağları yönetir. "Ben herkesi tanıyorum ve herkes beni seviyor" imajıyla beslenir. Rekabetçidirler.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 2 (SX): Baştan Çıkarma ve Fetih",
+                    desc: "Naranjo Tanımı: 'Baştan Çıkarma' (Seduction/Aggression)",
+                    text: `
+                        <p>Klasik "Femme Fatale" veya "Kazanova" arketipidir. Burada gurur, cinsel/romantik fetih üzerinden çalışır.</p>
+                        <p><strong>Temel Dinamik:</strong> "Seni istiyorum ve elde edeceğim." Bu tip, av ve avcı oyununu sever. İnanılmaz derecede çekici, iltifat eden, yoğun ilgi gösteren biridir. Ancak temel motivasyon, karşıdakini kendine aşık edip kendi değerini kanıtlamaktır. Eğer reddedilirse büyük bir öfke duyar. Tutku doludur, sınır tanımaz ve hayır cevabını kabul etmez.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 2 çocukluğu genellikle "Özel ama Kullanılan Çocuk" hikayesidir. Ebeveynlerden biri (genellikle karşı cins ebeveyn) çocuğa aşırı ilgi göstermiş, onu "prensesi/paşası" yapmış olabilir; ancak bu sevgi koşulludur. Çocuk, ebeveynin duygusal boşluğunu doldurmak, onu mutlu etmek veya dert ortağı olmak zorunda kalmıştır.</p>
+                <p>Çocuk şunu öğrenmiştir: <strong>"Kendi ihtiyaçlarımı belirtirsem yük olurum ve sevilmem. Ama babamı/annemi mutlu edersem, onların istediklerini hissedersem çok sevilirim."</strong> Böylece kendi içsel ihtiyaçlarına körleşip, tamamen dışarının ihtiyaçlarına duyarlı bir radar geliştirmiştir.</p>
+            `
+        },
+        3: {
+            title: "E3: Kibir ve Pazarlama",
+            meta: "Tutku: Kibir (Vanity) | Fiksasyon: Aldatma (Deceit) | Savunma: Özdeşleşme",
+            content: `
+                <p><strong>Giriş:</strong> Tip 3, modern dünyanın "başarı" tanımının vücut bulmuş halidir. Ancak Naranjo'ya göre, 3'ün merkezindeki tutku "Kibir" (Vanity), narsistik bir kendini beğenmişlikten ziyade, "gözlerdeki yansımaya aşık olma" halidir. Tip 3, "Ben neyim?" sorusunu sormaz, "Ne yaparsam alkışlanırım?" sorusunu sorar. Kendi öz benliğini terk edip, toplumun alkışlayacağı bir "imaj" inşa etmiştir.</p>
+                <p><strong>Fiksasyon: Aldatma (Deceit):</strong> Bu aldatma, başkalarına yalan söylemekten çok, "kendini aldatma"dır. Tip 3, yarattığı imaja (başarılı iş insanı, mükemmel ebeveyn, fit sporcu) o kadar inanır ki, maskenin altındaki gerçek duygularını ve kimliğini unutur. Bir bukalemun gibi, girdiği ortamın rengini alır.</p>
+                <p><strong>Duyguların Askıya Alınması:</strong> Başarıya giden yolda duygular birer engeldir. Tip 3, kalbini dondurarak bir makine verimliliğinde çalışabilir. Yorgunluk hissetmez, acı hissetmez, sadece hedefe kilitlenir.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 3 (SP): Güvenlik ve Karşı-Kibir",
+                    desc: "Naranjo Tanımı: 'Güvenlik' (Security)",
+                    text: `
+                        <p>Bu alt tip, diğer 3'lerin aksine gösterişi sevmez. O kadar mütevazı görünür ki bir Tip 1 veya Tip 6 sanılabilir. Kibirleri, "kibirli olmamakla" övünmektir.</p>
+                        <p><strong>Temel Dinamik:</strong> "Ben çok çalışkan, dürüst ve iyi bir insanım." Onlar için başarı, alkış değil, maddi güvenlik ve özerkliktir. İşkoliktirler. Perde arkasında sistemin yürümesini sağlayan, şirketi ayakta tutan kişilerdir. "İyi insan" imajı onlar için en büyük başarıdır.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 3 (SO): Prestij ve Sahne Işıkları",
+                    desc: "Naranjo Tanımı: 'Prestij' (Prestige)",
+                    text: `
+                        <p>En klasik Tip 3 budur. Sahne ışıklarını, unvanları, madalyaları, markaları severler. Kibirleri en dıştadır.</p>
+                        <p><strong>Temel Dinamik:</strong> "Bana bakın!" Sosyal 3, başarının görülebilir olmasını ister. Diplomaları duvarda asılı olmalı, arabası statüsünü belli etmelidir. Bukalemun yetenekleri en yüksek olan gruptur; politikacılar, aktörler, CEO'lar genellikle bu tiplemeden çıkar. İç dünyalarındaki boşluk hissini, dışarıdaki hayranlıkla doldurmaya çalışırlar.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 3 (SX): Çekicilik ve Maskülenite/Feminite",
+                    desc: "Naranjo Tanımı: 'Çekicilik' (Charisma)",
+                    text: `
+                        <p>Bu alt tip, başarısını "cinsiyet rolleri" üzerinden tanımlar. Erkekse "en ideal erkek", kadınsa "en ideal kadın" olmaya çalışır.</p>
+                        <p><strong>Temel Dinamik:</strong> Bir partneri cezbetmek ve onun gözünde mükemmel olmak, kariyer başarısından daha önemlidir. Partnerlerine "destekleyici" rol oynarlar, onları parlatırlar (ve böylece kendileri parlar). Fiziksel görünümlerine takıntılıdırlar. Ancak derin bir yakınlık kurmaktan korkarlar, çünkü maske düşerse sevilmeyeceklerini düşünürler.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 3 çocukları, "Performans Çocuğu"dur. Ebeveynleri tarafından "oldukları gibi" değil, "yaptıkları şeyler" için sevilmişlerdir. Okulda pekiyiler getirdiğinde, güzel piyano çaldığında veya uslu durup komşulara gülümsediğinde alkışlanmışlardır.</p>
+                <p>Çocuk şu mesajı içselleştirmiştir: <strong>"Sevgi, başarılan bir şeydir. Hiçbir şey yapmazsam, kimse beni sevmez. Olduğum halimle değersizim, başardığım kadar değerliyim."</strong> Bu yüzden içindeki "boşluğu" başarıyla doldurmaya çalışan bir yetişkine dönüşmüştür.</p>
+            `
+        },
+        4: {
+            title: "E4: Haset ve Derinlik",
+            meta: "Tutku: Haset (Envy) | Fiksasyon: Melankoli | Savunma: İçe Atma (Introjection)",
+            content: `
+                <p><strong>Giriş:</strong> Tip 4'ün dünyası "Eksiklik" üzerine kuruludur. Naranjo'nun tanımladığı "Haset" (Envy), komşunun arabasını kıskanmak değil, varoluşsal bir kıskançlıktır: "Başkalarında yaşam enerjisi, mutluluk ve normallik var ama bende bir parça eksik. Ben kusurluyum." Tip 4 bu eksiklik hissine tutunarak kendine trajik ama "özel" bir kimlik inşa eder.</p>
+                <p><strong>Duygusal Yoğunluk ve Melankoli:</strong> Sıradanlık, 4 için ölümdür. Duyguları (özellikle acıyı) büyüterek hissederler. Acı çekmek, onlara yaşadıklarını ve derin olduklarını hissettirir. Mutluluk yüzeysel gelebilirken, melankoli onlara asil ve estetik gelir.</p>
+                <p><strong>İçe Atma (Introjection):</strong> Tip 4, dış dünyadaki olumsuzlukları yutar. Biri onu reddederse, "O beni anlamadı" demez, "Ben reddedilmeyi hak ettim, ben kötüyüm" der. Dışarıdaki reddi içeri alır ve kendini zehirler.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 4 (SP): Sebat ve Dilsiz Acı",
+                    desc: "Naranjo Tanımı: 'Sebat' (Tenacity)",
+                    text: `
+                        <p>Acısını en çok saklayan, dışarıdan Tip 1 veya 3 gibi görünebilen "Stoacı" 4'tür. Naranjo onlara "Uykusuz" der.</p>
+                        <p><strong>Temel Dinamik:</strong> "Acı çekiyorum ama bunu kimseye yük etmeyeceğim." Acılarını içlerine gömerler ve bu acıya dayanma güçleriyle gurur duyarlar. Çok çalışkandırlar, kendilerini zorlarlar. "Kimse beni kurtarmayacak, kendimi ben kurtarmalıyım" inancıyla hareket ederler. Şikayet etmezler, ama içten içe anlaşılmayı beklerler.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 4 (SO): Utanç ve Ağıt",
+                    desc: "Naranjo Tanımı: 'Utanç' (Shame)",
+                    text: `
+                        <p>Tip 4'ün "ağlayan" yüzüdür. Acısını, mağduriyetini ve eksikliğini başkalarına göstererek bağ kurmaya çalışır.</p>
+                        <p><strong>Temel Dinamik:</strong> "Ben çok acı çekiyorum, ne kadar zavallıyım, lütfen beni sevin." Kendilerini diğer insanlardan daha "aşağıda", kusurlu ve yetersiz hissederler. Utanç duygusu çok baskındır. Sürekli kendilerini başkalarıyla kıyaslayıp kaybederler. Grubun "günah keçisi" veya "en hüzünlüsü" rolünü üstlenirler.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 4 (SX): Rekabet ve Nefret",
+                    desc: "Naranjo Tanımı: 'Rekabet' (Competition / Hate)",
+                    text: `
+                        <p>En agresif, en öfkeli 4 tipidir. Acısını dışarıya "nefret" ve "kıskançlık" olarak kusar. Tip 8'e benzer bir yoğunluğu vardır.</p>
+                        <p><strong>Temel Dinamik:</strong> "Benim mutsuzluğumun sebebi sensin/onlar." Haset duydukları kişiyi yok etmek veya onu geçmek isterler. "Neden onda var da bende yok?" sorusu onları saldırganlaştırır. İlişkilerde "İt-Çek" dinamiğini çok yaşarlar; hem çok severler hem de partnerlerini aşağılarlar. "Seni o kadar seviyorum ki senden nefret ediyorum" diyebilirler.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 4'lerin çocukluk öyküsünde "Cennetten Kovulma" teması vardır. Erken çocuklukta sevgi dolu bir dönem yaşanmış, ancak sonra ani bir kayıp, ayrılık veya travma ile bu sevgi kesilmiştir (kardeş doğumu, ebeveyn kaybı, taşınma vb.).</p>
+                <p>Çocuk bu kaybı şöyle yorumlamıştır: <strong>"Ben bir hata yaptım veya ben kusurluyum, bu yüzden terk edildim. Eğer o 'kayıp parçayı' bulursam veya kurtarıcı birini bulursam tekrar tamamlanacağım."</strong> Bu yüzden hayat boyu o eksik parçayı ararlar.</p>
+            `
+        },
+        5: {
+            title: "E5: Açgözlülük ve İzolasyon",
+            meta: "Tutku: Açgözlülük (Avarice) | Fiksasyon: Cimrilik | Savunma: Yalıtım (Isolation)",
+            content: `
+                <p><strong>Giriş:</strong> Tip 5, dünyayı talepkar, istilacı ve enerjiyi tüketen bir yer olarak görür. Buna karşı geliştirdiği savunma "Geri Çekilme"dir. Naranjo'nun "Açgözlülük" (Avarice) dediği şey, para hırsı değil; kendi enerjisini, zamanını ve duygularını kendine saklama, kimseyle paylaşmama tutkusudur. "Benden istemeyin, bana dokunmayın."</p>
+                <p><strong>Duygusal Kuraklık:</strong> Duygular karmaşıktır ve kontrol edilemez; bu yüzden 5'ler duygularını zihinlerinden ayırır (Isolation). Olayları yaşarken hissetmezler, daha sonra yalnız kaldıklarında zihinsel olarak analiz ederler. Hayatı tribünden izleyen gözlemcilerdir.</p>
+                <p><strong>Bilgi ve Yetersizlik:</strong> Dış dünyada eyleme geçmek için kendilerini "yetersiz" hissederler. Bu yetersizliği yenmek için sürekli bilgi toplarlar, uzmanlaşırlar. "Her şeyi bilirsem, dünya beni gafil avlayamaz" diye düşünürler.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 5 (SP): Kale ve Sığınak",
+                    desc: "Naranjo Tanımı: 'Sığınak' (Refuge/Castle)",
+                    text: `
+                        <p>En içe dönük, insanlardan en uzak duran tiptir. Fiziksel dünyadan kopmak isterler.</p>
+                        <p><strong>Temel Dinamik:</strong> İhtiyaçlarını minimuma indirirler. "Az yersem, az harcarsam, kimseye muhtaç olmam ve kimse de bana karışamaz." Kendi "mağaralarında" veya "kalelerinde" yaşarlar. Alanlarına girilmesi onlar için büyük bir tehdittir. Sosyal ilişkileri angarya olarak görürler.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 5 (SO): Totem ve Süper-İdealler",
+                    desc: "Naranjo Tanımı: 'Totem'",
+                    text: `
+                        <p>Bilgiyi ve zekayı, insanlarla bağ kurmak (ama güvenli bir mesafeden) için kullanan 5'tir.</p>
+                        <p><strong>Temel Dinamik:</strong> Sıradan, yüzeysel sohbetlerden nefret ederler. Ancak "büyük idealler", "bilim", "felsefe" gibi "Totem"ler etrafında toplanan gruplara katılırlar. O grubun "bilgini" veya "gurusu" olarak saygı görmek isterler. Bu, onlara dokunulmadan ilişki kurma imkanı verir. Bilgileriyle hiyerarşide üstte dururlar.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 5 (SX): Güven ve Mutlak Aşk",
+                    desc: "Naranjo Tanımı: 'Güven' (Confidence)",
+                    text: `
+                        <p>Diğer 5'lerin aksine çok romantik ve tutkuludur, ancak bunu sadece "tek bir" kişiye saklar.</p>
+                        <p><strong>Temel Dinamik:</strong> "Dünya tehlikeli ama sen ve ben güvenli bir koza yaratabiliriz." İdeal bir partner ararlar ve o kişiye mutlak bir güven duymak isterler. Eğer o kişiyi bulurlarsa, tüm gizli dünyalarını, şiirlerini, duygularını ona açarlar. Bu bir tür "test"tir; eğer partner sırlarını ifşa ederse, 5 tamamen kapanır.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 5 çocukları genellikle "İhmal Edilmiş" veya tam tersi "İstilaya Uğramış" çocuklardır. İki senaryo vardır: Ya duygusal ihtiyaçları hiç karşılanmamıştır ve çocuk "istememeyi öğrenmiştir"; ya da ebeveyn çocuğun alanına o kadar saygısızca girmiştir ki çocuk zihnine kaçarak saklanmıştır.</p>
+                <p>Temel karar şudur: <strong>"İnsanlardan bir şey beklemek hayal kırıklığıdır. İnsanlar beni yutar, enerjimi emer. En iyisi duvarlarımı örmek, hissetmemek ve kendi kendime yetmektir."</strong></p>
+            `
+        },
+        6: {
+            title: "E6: Korku ve Şüphe",
+            meta: "Tutku: Korku (Fear) | Fiksasyon: Korkaklık/Şüphe | Savunma: Projeksiyon (Yansıtma)",
+            content: `
+                <p><strong>Giriş:</strong> Tip 6 için dünya "tekinsiz" bir yerdir. Her an bir felaket olabilir, biri ihanet edebilir. Naranjo'nun "Korku" (Fear/Anxiety) dediği tutku, sürekli bir tetikte olma halidir. Tip 6, geleceğe dair en kötü senaryoları yazar ve bunlara hazırlanır. Temel sorunu "Güven"dir; kendine güvenemez, dışarıdaki otoriteye de tam güvenemez.</p>
+                <p><strong>Projeksiyon (Yansıtma):</strong> Kendi içindeki korkuyu, güvensizliği veya düşmanlığı dışarıya yansıtır. "Ben ondan korkuyorum" veya "O bana zarar verecek" der, oysa bu kendi içindeki korkunun yansımasıdır. Bazen de kendi gücünü dışarı yansıtıp, bir kurtarıcı/lider arar.</p>
+                <p><strong>Zihinsel Yoğunluk:</strong> 6'lar "Kafa" merkezinin en analitik üyeleridir. Şüphecidirler. Bir bilginin arkasını, satır aralarını okumaya çalışırlar. "Bunu dedi ama aslında ne demek istedi?" diye sorarlar.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 6 (SP): Sıcaklık ve Tavşan",
+                    desc: "Naranjo Tanımı: 'Sıcaklık' (Warmth)",
+                    text: `
+                        <p>Korkusunu, "tehdit oluşturmayan", sevimli ve sıcakkanlı biri olarak yenmeye çalışan tiptir. "İyi çocuk" stratejisi.</p>
+                        <p><strong>Temel Dinamik:</strong> "Bana zarar vermeyin, ben sizin dostunuzum." Kırılgandırlar, çatışmadan kaçarlar. Güçlü ittifaklar kurarak korunmaya çalışırlar. En kaygılı ama en cana yakın 6'dır. Bir sorun olduğunda suçlanmamak için aşırı nazik davranırlar.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 6 (SO): Görev ve Prusyalı",
+                    desc: "Naranjo Tanımı: 'Görev' (Duty)",
+                    text: `
+                        <p>Korkusunu, kurallara, sisteme ve otoriteye tam itaat ederek bastıran tiptir. "Prusya Askeri" gibidir.</p>
+                        <p><strong>Temel Dinamik:</strong> Belirsizlikten nefret ederler, bu yüzden net kuralları olan sistemlere (din, hukuk, ideoloji) sığınırlar. "Kurallara uyarsam güvende olurum." Grubun sadık bekçisidirler. Otoriteye itaat ederler ama otorite kuralları bozarsa ona karşı en sert eleştirmen olurlar. Soğuk ve resmi olabilirler.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 6 (SX): Güç ve Karşı-Fobik",
+                    desc: "Naranjo Tanımı: 'Güç' (Strength/Intimidation)",
+                    text: `
+                        <p>Korkunun üzerine "saldırarak" giden, "Korkmuyorum!" diye bağıran tiptir. Çoğu zaman Tip 8 ile karıştırılır.</p>
+                        <p><strong>Temel Dinamik:</strong> "En iyi savunma saldırıdır." Zayıf görünmekten nefret ederler. Tehdit algıladıkları an agresifleşirler. Fiziksel güce veya entelektüel keskinliğe önem verirler. Otoriteye kafa tutarlar. Bu güç gösterisinin altında aslında titreyen bir korku yatar, ama bunu asla kabul etmezler.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 6 çocukluğu "Güvensiz Zemin"dir. Ebeveynler tutarsızdır; bazen çok sevecen, bazen sebepsizce öfkeli veya cezalandırıcıdır. Ya da evde alkolizm, kavga gibi öngörülemeyen bir tehlike vardır.</p>
+                <p>Çocuk, ne zaman ne olacağını kestiremediği için <strong>"sürekli tetikte olma"</strong> (hiper-vijilans) becerisini geliştirmiştir. "Kimseye güvenemezsin, kendi ailene bile. Her an hazırlıklı olmalısın."</p>
+            `
+        },
+        7: {
+            title: "E7: Oburluk ve Şarlatanlık",
+            meta: "Tutku: Oburluk (Gluttony) | Fiksasyon: Planlama/Şarlatanlık | Savunma: Rasyonalizasyon",
+            content: `
+                <p><strong>Giriş:</strong> Tip 7, acıdan kaçmanın ustasıdır. Naranjo'nun "Oburluk" (Gluttony) dediği şey, yemek yemek değil; deneyimlere, yeniliğe ve geleceğe duyulan zihinsel bir açlıktır. Tip 7, "an"ın içindeki sıkıntıyla yüzleşmemek için zihnini sürekli gelecekteki güzel planlarla doldurur.</p>
+                <p><strong>Şarlatanlık (Charlatanism):</strong> Naranjo 7'leri "şarlatan" olarak tanımlar; bu, onların bilgiyi yüzeysel kullanıp, kendilerini olduklarından daha yetkin gösterme becerileridir. Kelimelerle oynarlar, gerçekleri bükerler ve ikna kabiliyetleri çok yüksektir. Bir konuyu 10 dakika okuyup, o konuda uzmanmış gibi konuşabilirler.</p>
+                <p><strong>Narsisizm ve İdealizm:</strong> 7'ler kendilerini severler ve dünyanın da onları sevdiğini düşünürler. Polyannacı bir iyimserlikleri vardır. Negatif her şeyi "pembe boya" ile boyayıp (Rasyonalizasyon), "Aslında bu benim için iyi oldu" diyerek acıyı reddederler.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 7 (SP): Aile ve Mafya",
+                    desc: "Naranjo Tanımı: 'Aile' (Family/Keepers of the Castle)",
+                    text: `
+                        <p>Zevkine en düşkün, en dünyevi, fırsatları en iyi koklayan ve pragmatik 7'dir.</p>
+                        <p><strong>Temel Dinamik:</strong> "Ben ve benimkiler." Kendilerine dar bir çevre (aile veya çete) kurarlar ve bu çevrenin maddi/fiziksel çıkarlarını korurlar. İyi yemek, iyi seks, para ve konfor peşindedirler. Fırsatçıdırlar; bir kriz anında kendilerini kurtaracak yolu hemen bulurlar. Biraz "mafya babası" havasında, alışverişi seven bir tiptir.</p>
+                    `
+                },
+                {
+                    name: "Sosyal 7 (SO): Fedakarlık ve Sahte Aziz",
+                    desc: "Naranjo Tanımı: 'Fedakarlık' (Sacrifice)",
+                    text: `
+                        <p>Oburluğunu "iyilik" maskesiyle gizleyen, "Ben kendim için istemiyorum, dünya için istiyorum" diyen tiptir (Counter-Gluttony).</p>
+                        <p><strong>Temel Dinamik:</strong> Kendini feda ederek, insanlara yardım ederek takdir toplar. Aslında bu bir yatırımdır: "Ben o kadar iyi biriyim ki, herkes beni sevmeli." İdealisttirler, dünyayı kurtaracak projeler üretirler. Ancak derinlerde alkış ve hayranlık beklerler. Kendi arzularını erteleyerek "saf" ve "aziz" görünmeye çalışırlar.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 7 (SX): Telkin ve Büyülenme",
+                    desc: "Naranjo Tanımı: 'Telkin' (Suggestion)",
+                    text: `
+                        <p>Gerçeklikten en kopuk, hayal dünyasında yaşayan, sürekli aşık olan "uçuk kaçık" 7'dir.</p>
+                        <p><strong>Temel Dinamik:</strong> Dünyayı "pembe gözlüklerle" görürler. Acı, çirkinlik ve sıkıntı onlar için yoktur. Her şeyi, herkesi idealize ederler. Sürekli yeni heyecanlar, spiritüel deneyimler veya fantastik maceralar peşindedirler. Konuşmalarıyla insanları hipnotize edebilirler (telkin). Ayakları yere basmaz.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 7 çocukları, genellikle "babasız" veya otoritenin zayıf olduğu, ancak çocuğun şımartıldığı bir ortamdan gelir. Çocuk, acı verici bir durumla karşılaştığında (veya ebeveyninden destek görmediğinde), kendi zihninde bir "Mutluluk Adası" yaratmıştır.</p>
+                <p><strong>"Benim kimseye ihtiyacım yok, ben kendi kendimi mutlu edebilirim."</strong> Çocuk, hayal gücünü kullanarak acıdan kaçmayı ve kendine yetmeyi (narsistik bir şekilde) öğrenmiştir.</p>
+            `
+        },
+        9: {
+            title: "E9: Tembellik ve Uyum",
+            meta: "Tutku: Tembellik (Sloth/Accidia) | Fiksasyon: Uyuşukluk | Savunma: Narkotizasyon",
+            content: `
+                <p><strong>Giriş:</strong> Tip 9'un "Tembelliği" fiziksel değil, "psiko-spiritüel" bir tembelliktir. Bu, "kendi hayatına sahip çıkmama", "kendi iç dünyasına bakmaya üşenme" halidir. Naranjo buna "kendini unutma" (self-forgetting) der. Tip 9, çatışma yaşamamak ve huzuru bozmamak için, kendi isteklerini, öfkesini ve benliğini uyuşturur.</p>
+                <p><strong>Aşırı Uyum (Over-adaptation):</strong> 9'lar, başkalarının isteklerine o kadar çabuk uyum sağlarlar ki, ne istediklerini kendileri de unutur. "Fark etmez", "Sen bilirsin" en sık kullandıkları cümlelerdir. Bu uyum, aslında pasif bir agresyondur; var olmayarak direnirler.</p>
+                <p><strong>Narkotizasyon (Uyuşturma):</strong> İçerideki öfkeyi veya huzursuzluğu hissetmemek için kendilerini uyuştururlar. Bu; aşırı yemek, TV izlemek, uyumak veya rutin işlerle (temizlik gibi) kendini meşgul etmek şeklinde olabilir.</p>
+            `,
+            subtypes: [
+                {
+                    name: "Kendini Koruma 9 (SP): İştah ve Ayı",
+                    desc: "Naranjo Tanımı: 'İştah' (Appetite)",
+                    text: `
+                        <p>Fiziksel ihtiyaçlarla (yemek, uyku, konfor) kendini uyuşturan, en "somut" ve "inatçı" 9'dur.</p>
+                        <p><strong>Temel Dinamik:</strong> "Beni rahat bırakın." Kendi rutinlerini severler ve değiştirilmesinden nefret ederler. Sorunları görmezden gelip, karınlarını doyurarak veya uyuyarak huzur bulurlar. Bir "ayı" gibi huysuz ama zararsız görünebilirler. Pratik zekaları yüksektir ama harekete geçmekte çok zorlanırlar (atalet).</p>
+                    `
+                },
+                {
+                    name: "Sosyal 9 (SO): Katılım ve İşkolik",
+                    desc: "Naranjo Tanımı: 'Katılım' (Participation)",
+                    text: `
+                        <p>Tembelliğini "çok çalışarak" gizleyen 9'dur. Grubun neşeli, yardımsever ve aktif üyesidir.</p>
+                        <p><strong>Temel Dinamik:</strong> "Grubun parçasıysam varım." Kendi hayatını yaşamak yerine, grubun hayatını yaşarlar. Herkesin yardımına koşar, organizasyonlar yapar ama eve gelince kendi ihtiyaçlarını ihmal ederler. Liderlik yapabilirler ama çatışmadan kaçındıkları için kararsız kalabilirler. Dışarıdan çok mutlu görünürler ama içlerinde bir boşluk vardır.</p>
+                    `
+                },
+                {
+                    name: "Cinsel 9 (SX): Simbiyoz ve Birleşme",
+                    desc: "Naranjo Tanımı: 'Birleşme' (Fusion/Symbiosis)",
+                    text: `
+                        <p>Kendi varlığını bir başkasının varlığında eriten tiptir. Çok yumuşak, utangaç ve siliktirler.</p>
+                        <p><strong>Temel Dinamik:</strong> "Sen varsan ben de varım." Bir partner bulurlar ve onun zevklerini, kararlarını, hayatını benimserler (Simbiyoz). Tek başlarına karar alamazlar. Partnerlerinin öfkesini veya acısını bile kendilerininmiş gibi yaşarlar. Ayrılık onlar için yok olmak demektir.</p>
+                    `
+                }
+            ],
+            trauma: `
+                <p>Tip 9 çocukları, "Görülmeyen" veya "Sorun Çıkarmaması Gereken" çocuklardır. Genellikle kalabalık ailelerde veya ebeveynlerin kendi sorunlarıyla çok meşgul olduğu evlerde büyürler.</p>
+                <p>Çocuk şu stratejiyi geliştirmiştir: <strong>"Eğer bir şey istersem veya sorun çıkarırsam dışlanırım. En iyisi sessiz durmak, göze batmamak ve yokmuş gibi davranmaktır."</strong> Böylece çocuk, "var olmamayı" hayatta kalma yolu olarak seçer.</p>
+            `
+        }
+    };
+
+    // --- İŞLEVSELLİK ---
+    function showHome() {
+        document.getElementById('detail-view').style.display = 'none';
+        document.getElementById('home-view').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        [1,2,3,4,5,6,7,8,9].forEach(i => {
+            const isLocked = i === 8;
+            const data = db[i];
+            grid.innerHTML += `
+                <div class="type-card ${isLocked?'locked':''}" onclick="${isLocked?'':'openDetail('+i+')'}">
+                    <h2>${i}</h2>
+                    <h3>${isLocked ? 'YAKINDA' : data.title.split(':')[1]}</h3>
+                </div>
+            `;
+        });
+    }
+
+    function openDetail(id) {
+        const data = db[id];
+        document.getElementById('d-title').innerText = data.title;
+        document.getElementById('d-meta').innerText = data.meta;
+        document.getElementById('d-content').innerHTML = data.content;
+        document.getElementById('d-trauma').innerHTML = data.trauma;
+        
+        const subBox = document.getElementById('d-subtypes');
+        subBox.innerHTML = '';
+        data.subtypes.forEach(sub => {
+            const div = document.createElement('div');
+            div.className = 'subtype-box';
+            div.innerHTML = `
+                <div class="subtype-head" onclick="toggleSub(this)">
+                    ${sub.name} <span>▼</span>
+                </div>
+                <div class="subtype-content">
+                    <p style="color:#558b2f; font-style:italic;">${sub.desc}</p>
+                    ${sub.text}
+                </div>
+            `;
+            subBox.appendChild(div);
+        });
+
+        document.getElementById('home-view').style.display = 'none';
+        document.getElementById('detail-view').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    function toggleSub(head) {
+        const content = head.nextElementSibling;
+        const isOpen = content.style.display === 'block';
+        content.style.display = isOpen ? 'none' : 'block';
+        head.querySelector('span').innerText = isOpen ? '▼' : '▲';
+        head.style.backgroundColor = isOpen ? '#f1f8e9' : '#dcedc8';
+    }
+
+    // Başlat
+    renderGrid();
+
+</script>
+</body>
+</html>
